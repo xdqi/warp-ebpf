@@ -40,13 +40,14 @@ int turn_camouflaged_icmp_into_udp(struct __sk_buff *skb) {
    * faked UDP packets */
   if (udp->dest != __constant_ntohs(SMELLY_PORT))
     return TC_ACT_UNSPEC;
-  
+
   __u8 new_proto = IPPROTO_UDP;
   bpf_skb_store_bytes(skb,
                       sizeof(struct ethhdr) + offsetof(struct iphdr, protocol),
                       &new_proto, sizeof(new_proto), 0);
   bpf_l3_csum_replace(skb,
                       sizeof(struct ethhdr) + offsetof(struct iphdr, check),
-                      IPPROTO_ICMP, IPPROTO_UDP, 2);
+                      /* offsetof(struct iphdr, protocol) % 2 == 1 */
+                      (IPPROTO_ICMP << 8), (IPPROTO_UDP << 8), 2);
   return TC_ACT_PIPE;
 }
