@@ -15,20 +15,28 @@ char LICENSE[] SEC("license") = "GPL";
 
 #define SMELLY_PORT 0x1919
 
-int hack_ip_proto(struct __sk_buff *skb, __u8 from, __u8 to) {
+static inline int hack_ip_proto(struct __sk_buff *skb, __u8 from, __u8 to) {
   void *data = (void *)(long)skb->data;
   void *data_end = (void *)(long)skb->data_end;
 
-  size_t min_packet_size =
-      sizeof(struct ethhdr) + sizeof(struct iphdr) + sizeof(struct udphdr);
+  if (skb->protocol != __constant_htons(ETH_P_IP))
+    return TC_ACT_UNSPEC;
+
+  __u32 net_offset = 0;
+  struct ethhdr *eth = data;
+  // Sorry Level 3 (8.0.0.0/16)
+  if (eth->h_proto == skb->protocol) {
+    net_offset = sizeof(struct ethhdr);
+  }
+
+  size_t min_packet_size = net_offset + sizeof(struct iphdr) + sizeof(struct udphdr);
   if (data + min_packet_size >= data_end)
     return TC_ACT_UNSPEC;
 
-  struct ethhdr *eth = data;
-  struct iphdr *ip = (data + sizeof(struct ethhdr));
-  struct udphdr *udp = (data + sizeof(struct ethhdr) + sizeof(struct iphdr));
+  struct iphdr *ip = data + net_offset;
+  struct udphdr *udp = data + net_offset + sizeof(struct iphdr);
 
-  if (eth->h_proto != __constant_htons(ETH_P_IP))
+  if (ip->version != IPVERSION)
     return TC_ACT_UNSPEC;
   if (ip->protocol != from)
     return TC_ACT_UNSPEC;
@@ -39,12 +47,9 @@ int hack_ip_proto(struct __sk_buff *skb, __u8 from, __u8 to) {
   if (udp->dest != __constant_ntohs(SMELLY_PORT))
     return TC_ACT_UNSPEC;
 
-  __u8 new_proto = to;
-  bpf_skb_store_bytes(skb,
-                      sizeof(struct ethhdr) + offsetof(struct iphdr, protocol),
-                      &new_proto, sizeof(new_proto), 0);
+  ip->protocol = to;
   bpf_l3_csum_replace(skb,
-                      sizeof(struct ethhdr) + offsetof(struct iphdr, check),
+                      net_offset + offsetof(struct iphdr, check),
                       /* offsetof(struct iphdr, protocol) % 2 == 1 */
                       (from << 8), (to << 8), 2);
   return TC_ACT_PIPE;
