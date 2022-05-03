@@ -25,20 +25,18 @@ static inline int hack_ip_proto(struct __sk_buff *skb, __u8 from, __u8 to) {
   __u32 net_offset = 0;
   struct ethhdr *eth = data;
   // Sorry Level 3 (8.0.0.0/16)
-  if (eth->h_proto == skb->protocol) {
+  if (data + sizeof(struct ethhdr) <= data_end && eth->h_proto == skb->protocol) {
     net_offset = sizeof(struct ethhdr);
   }
 
   size_t min_packet_size = net_offset + sizeof(struct iphdr) + sizeof(struct udphdr);
-  if (data + min_packet_size >= data_end)
+  if (data + min_packet_size > data_end)
     return TC_ACT_UNSPEC;
 
   struct iphdr *ip = data + net_offset;
   struct udphdr *udp = data + net_offset + sizeof(struct iphdr);
 
-  if (ip->version != IPVERSION)
-    return TC_ACT_UNSPEC;
-  if (ip->protocol != from)
+  if (ip->version != IPVERSION || ip->protocol != from)
     return TC_ACT_UNSPEC;
 
   /* offsetof(struct udphdr, dest) == offsetof(struct icmphdr, type), and ICMP
