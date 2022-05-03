@@ -1,5 +1,7 @@
 #!/bin/bash -e
 
+cd "$(dirname "$0")"
+
 [ -f "1919.o" ] || exit 1
 
 tc qdisc add dev "$1" clsact
