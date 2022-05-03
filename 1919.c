@@ -46,6 +46,11 @@ static inline int hack_ip_proto(struct __sk_buff *skb, __u8 from, __u8 to) {
     return TC_ACT_UNSPEC;
 
   ip->protocol = to;
+  // Disable UDP checksum. UDP checksums IP source/dest address besides its own
+  // header and payload. Given that we lied about ip->proto, middleboxes have
+  // no chance fixing UDP checksums for us. This helps with some 1:1 NATs (e.g.
+  // the one all major clouds run for Internet <-> VPC).
+  udp->check = 0;
   bpf_l3_csum_replace(skb,
                       net_offset + offsetof(struct iphdr, check),
                       /* offsetof(struct iphdr, protocol) % 2 == 1 */
