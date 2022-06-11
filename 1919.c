@@ -39,10 +39,10 @@ static inline int hack_ip_proto(struct __sk_buff *skb, __u8 from, __u8 to) {
   if (ip->version != IPVERSION || ip->protocol != from)
     return TC_ACT_UNSPEC;
 
-  /* offsetof(struct udphdr, dest) == offsetof(struct icmphdr, type), and ICMP
+  /* offsetof(struct udphdr, source) == offsetof(struct icmphdr, type), and ICMP
    * type 0x19 is reserved, so it is reasonably safe to assume these might be
-   * faked UDP packets even on ingress and always match on udp->dest */
-  if (udp->dest != __constant_ntohs(SMELLY_PORT))
+   * faked UDP packets even on ingress and always match on udp->source */
+  if (udp->source != __constant_ntohs(SMELLY_PORT))
     return TC_ACT_UNSPEC;
 
   ip->protocol = to;

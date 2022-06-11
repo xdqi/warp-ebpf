@@ -1,7 +1,7 @@
 What
 --------------------------
 
-A tc-bpf action to rewrite `ip->protocol` to ICMP for outgoing UDP packets with dest port = 0x1919, and vice versa for ingress.
+A tc-bpf action to rewrite `ip->protocol` to ICMP for outgoing UDP packets with source port = 0x1919, and vice versa for ingress.
 
 Jesus Why?
 --------------------------
