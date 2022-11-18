@@ -1,6 +1,6 @@
-all: 1919.o
+all: warp-ebpf.o
 
-%.o: %.c
+warp-ebpf.o: warp-ebpf.c
 	clang -O2 -I/usr/include/x86_64-linux-gnu -target bpf -mcpu=probe -c $< -o $@
 
 clean:

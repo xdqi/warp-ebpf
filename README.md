@@ -1,12 +1,27 @@
 What
 --------------------------
 
-A tc-bpf action to rewrite `ip->protocol` to ICMP for outgoing UDP packets with source port = 0x1919, and vice versa for ingress.
+A tc-bpf action to rewrite `wg.reserved_zero[3]` to `client_id` required by warp, and vice versa for ingress.
 
-Jesus Why?
+Usage
 --------------------------
 
-* Your ISP have an interesting "management network" connecting all subscribers in the city.
-* They block all traffic between subscribers, except when `ip->protocol = 1`.
-* You want to have fun with your friend. (and discover that the link is throttled to 20Mbps)
-* You heard that in 2021 there are 114514 eBPF hook points in kernel but never tried any one of them thus want a toy example slightly more complex than hello world.
+* Register with `warp-register.py` first, save the result into `/etc/wireguard/cf.conf`
+* Replace in `warp-ebpf.c`:
+  * Find the line `static const __u8 warp_private[3] = {11, 45, 14};`
+  * Change `{11, 45, 14}` to the content of `ClientID` in `cf.conf` above
+* `make` to build the eBPF module
+* `./attach.sh <your network interface>` to load it into your system
+* `wg-quick up cf` start the wireguard tunnel
+* `./detach.sh` to remove it from your system
+
+TODO
+--------------------------
+
+* IPv6 support
+
+Credits
+--------------------------
+* [Ritare/1919](https://github.com/Riatre/1919): eBPF example
+* [iBug/warp-helper](https://gist.github.com/iBug/3107fd4d5af6a4ea7bcea4a8090dcc7e): original wg-warp-helper
+* [Wireguard Protocol](https://www.wireguard.com/protocol/): Wireguard protocol specification
