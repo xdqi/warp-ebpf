@@ -7,8 +7,8 @@ Usage
 --------------------------
 
 * Register with `warp-register.py` first, save the result into `/etc/wireguard/cf.conf`
-* Replace in `warp-ebpf.c`:
-  * Find the line `static const __u8 warp_private[3] = {11, 45, 14};`
+* Edit `config.h`
+  * Find line `static const __u8 warp_private[3] = {11, 45, 14};`
   * Change `{11, 45, 14}` to the content of `ClientID` in `cf.conf` above
 * `make` to build the eBPF module
 * `./attach.sh <your network interface>` to load it into your system
