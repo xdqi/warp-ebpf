@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - '*'
+  pull_request:
+    branches:
+      - '*'
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+        - os: ubuntu-22.04
+          deps: sudo apt-get install -y libbpf-dev libc6-dev-i386
+        - os: ubuntu-20.04
+          deps: sudo apt-get install -y libbpf-dev libc6-dev-i386
+
+    steps:
+     - uses: actions/checkout@v3
+     - name: install build deps
+       run: ${{ matrix.deps }}
+     - name: build
+       run: make
+     - name: check
+       run: file warp-ebpf.o
