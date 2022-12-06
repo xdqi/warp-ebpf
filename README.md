@@ -15,6 +15,12 @@ Usage
 * `wg-quick up cf` start the wireguard tunnel
 * `./detach.sh` to remove it from your system
 
+Build Dependencies
+--------------------------
+Debian/Ubuntu:  `sudo apt install build-essential clang libc6-dev-i386 libbpf-dev`
+
+Arch: `sudo pacman -S base-devel clang libbpf`
+
 TODO
 --------------------------
 
