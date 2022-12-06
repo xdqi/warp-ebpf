@@ -7,6 +7,7 @@
 #include <linux/ip.h>
 #include <linux/pkt_cls.h>
 #include <linux/udp.h>
+#include <sys/socket.h>
 #include <stddef.h>
 #include <stdbool.h>
 
